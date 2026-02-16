@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@_Taxo_ | Link in Bio</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Fraunces:wght@600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Archivo', sans-serif;
+            background: #0A0A0A;
+            min-height: 100vh;
+        }
+
+        .admin-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+            background: white;
+            padding: 6px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .toggle-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #666;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            font-family: 'Archivo', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Admin View Styles */
+        .admin-view {
+            background: #F5F5F0;
+            min-height: 100vh;
+            padding: 100px 20px 40px;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .admin-header h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+
+        .admin-header p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .stat-card p:first-child {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card p:last-child {
+            font-family: 'Fraunces', serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-header h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            padding: 12px 24px;
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Archivo', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .post-card img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+        }
+
+        .post-card-content {
+            padding: 16px;
+        }
+
+        .post-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .post-card p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .post-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .post-card-footer span {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            padding: 6px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #E5E5E0;
+            border-radius: 8px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 15px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #1a1a1a;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 14px;
+            background: transparent;
+            color: #666;
+            border: 2px solid #E5E5E0;
+            border-radius: 10px;
+            font-family: 'Archivo', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        /* Public View Styles */
+        .public-view {
+            min-height: 100vh;
+            padding: 60px 20px 80px;
+        }
+
+        .public-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .public-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .profile-avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B9D, #FF6B9Ddd);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .public-header h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .public-header p {
+            font-size: 16px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .link-item {
+            text-decoration: none;
+            display: block;
+        }
+
+        .link-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .link-card:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #FF6B9D;
+            transform: translateY(-4px);
+        }
+
+        .link-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .link-card-content {
+            padding: 14px;
+        }
+
+        .link-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .link-card p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.4;
+        }
+
+        .category-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #FF6B9D;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .public-footer {
+            text-align: center;
+            padding-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .admin-header h1 {
+                font-size: 32px;
+            }
+            
+            .posts-grid,
+            .links-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Toggle Buttons -->
+    <div class="admin-toggle">
+        <button class="toggle-btn active" onclick="switchView('admin')">Admin</button>
+        <button class="toggle-btn" onclick="switchView('public')">Preview</button>
+    </div>
+
+    <!-- Admin View -->
+    <div class="view admin-view active" id="admin-view">
+        <div class="admin-container">
+            <div class="admin-header">
+                <h1>Link Manager</h1>
+                <p>Manage your Instagram link-in-bio for @_Taxo_</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <p>Total Posts</p>
+                    <p id="total-posts">0</p>
+                </div>
+                <div class="stat-card">
+                    <p>Total Clicks</p>
+                    <p id="total-clicks">0</p>
+                </div>
+                <div class="stat-card">
+                    <p>Avg. CTR</p>
+                    <p id="avg-ctr">0</p>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <h2>Shoppable Posts</h2>
+                <button class="btn-primary" onclick="openAddPostModal()">+ Add Post</button>
+            </div>
+
+            <div class="posts-grid" id="posts-grid">
+                <div class="empty-state">
+                    <p>No posts yet. Add your first shoppable post!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Public View -->
+    <div class="view public-view" id="public-view">
+        <div class="public-container">
+            <div class="public-header">
+                <div class="profile-avatar">T</div>
+                <h1>@_Taxo_</h1>
+                <p>Explore our curated collection</p>
+            </div>
+
+            <div class="links-grid" id="links-grid"></div>
+
+            <div class="public-footer">
+                <p>Built with Claude</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Post Modal -->
+    <div class="modal" id="post-modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Add New Post</h3>
+            <form id="post-form">
+                <div class="form-group">
+                    <label>Image URL *</label>
+                    <input type="url" id="image-url" required placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="title" required placeholder="Product name or title">
+                </div>
+                <div class="form-group">
+                    <label>Description (optional)</label>
+                    <input type="text" id="description" placeholder="Brief description">
+                </div>
+                <div class="form-group">
+                    <label>Link URL *</label>
+                    <input type="url" id="link-url" required placeholder="https://your-shop.com/product">
+                </div>
+                <div class="form-group">
+                    <label>Category (optional)</label>
+                    <input type="text" id="category" placeholder="e.g., New Arrival, Sale, Featured">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" style="flex: 1;">Save Post</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let posts = JSON.parse(localStorage.getItem('taxo-posts') || '[]');
+        let currentEditId = null;
+
+        // Initialize
+        renderPosts();
+        renderLinks();
+        updateStats();
+
+        // View switching
+        function switchView(view) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            
+            if (view === 'admin') {
+                document.getElementById('admin-view').classList.add('active');
+                document.querySelectorAll('.toggle-btn')[0].classList.add('active');
+            } else {
+                document.getElementById('public-view').classList.add('active');
+                document.querySelectorAll('.toggle-btn')[1].classList.add('active');
+            }
+        }
+
+        // Modal functions
+        function openAddPostModal() {
+            currentEditId = null;
+            document.getElementById('modal-title').textContent = 'Add New Post';
+            document.getElementById('post-form').reset();
+            document.getElementById('post-modal').classList.add('active');
+        }
+
+        function openEditPostModal(id) {
+            currentEditId = id;
+            const post = posts.find(p => p.id === id);
+            
+            document.getElementById('modal-title').textContent = 'Edit Post';
+            document.getElementById('image-url').value = post.imageUrl;
+            document.getElementById('title').value = post.title;
+            document.getElementById('description').value = post.description || '';
+            document.getElementById('link-url').value = post.linkUrl;
+            document.getElementById('category').value = post.category || '';
+            
+            document.getElementById('post-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('post-modal').classList.remove('active');
+            document.getElementById('post-form').reset();
+            currentEditId = null;
+        }
+
+        // Form submission
+        document.getElementById('post-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const postData = {
+                imageUrl: document.getElementById('image-url').value,
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                linkUrl: document.getElementById('link-url').value,
+                category: document.getElementById('category').value,
+                clicks: 0
+            };
+
+            if (currentEditId) {
+                // Update existing post
+                const index = posts.findIndex(p => p.id === currentEditId);
+                posts[index] = { ...posts[index], ...postData };
+            } else {
+                // Add new post
+                postData.id = Date.now();
+                posts.push(postData);
+            }
+
+            localStorage.setItem('taxo-posts', JSON.stringify(posts));
+            renderPosts();
+            renderLinks();
+            updateStats();
+            closeModal();
+        });
+
+        // Delete post
+        function deletePost(id) {
+            if (confirm('Are you sure you want to delete this post?')) {
+                posts = posts.filter(p => p.id !== id);
+                localStorage.setItem('taxo-posts', JSON.stringify(posts));
+                renderPosts();
+                renderLinks();
+                updateStats();
+            }
+        }
+
+        // Track click
+        function trackClick(id) {
+            const post = posts.find(p => p.id === id);
+            if (post) {
+                post.clicks = (post.clicks || 0) + 1;
+                localStorage.setItem('taxo-posts', JSON.stringify(posts));
+                updateStats();
+            }
+        }
+
+        // Render functions
+        function renderPosts() {
+            const grid = document.getElementById('posts-grid');
+            
+            if (posts.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><p>No posts yet. Add your first shoppable post!</p></div>';
+                return;
+            }
+
+            grid.innerHTML = posts.map(post => `
+                <div class="post-card">
+                    <img src="${post.imageUrl}" alt="${post.title}">
+                    <div class="post-card-content">
+                        <h3>${post.title}</h3>
+                        ${post.description ? `<p>${post.description}</p>` : ''}
+                        <div class="post-card-footer">
+                            <span>${post.clicks || 0} clicks</span>
+                            <div class="post-actions">
+                                <button class="icon-btn" onclick="openEditPostModal(${post.id})">✏️</button>
+                                <button class="icon-btn" onclick="deletePost(${post.id})">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderLinks() {
+            const grid = document.getElementById('links-grid');
+            
+            if (posts.length === 0) {
+                grid.innerHTML = '';
+                return;
+            }
+
+            grid.innerHTML = posts.map(post => `
+                <a href="${post.linkUrl}" target="_blank" class="link-item" onclick="trackClick(${post.id})">
+                    <div class="link-card">
+                        <div style="position: relative;">
+                            <img src="${post.imageUrl}" alt="${post.title}">
+                            ${post.category ? `<div class="category-badge">${post.category}</div>` : ''}
+                        </div>
+                        <div class="link-card-content">
+                            <h3>${post.title}</h3>
+                            ${post.description ? `<p>${post.description}</p>` : ''}
+                        </div>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        function updateStats() {
+            const totalClicks = posts.reduce((sum, post) => sum + (post.clicks || 0), 0);
+            const avgCtr = posts.length ? Math.round(totalClicks / posts.length) : 0;
+            
+            document.getElementById('total-posts').textContent = posts.length;
+            document.getElementById('total-clicks').textContent = totalClicks;
+            document.getElementById('avg-ctr').textContent = avgCtr;
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('post-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
