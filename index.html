@@ -84,6 +84,31 @@
             margin-bottom: 40px;
         }
 
+        .tabs {
+            display: flex;
+            gap: 24px;
+            border-bottom: 2px solid #E5E5E0;
+            margin-bottom: 32px;
+        }
+
+        .tab-btn {
+            padding: 12px 0;
+            border: none;
+            background: none;
+            font-family: 'Archivo', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: #999;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab-btn.active {
+            color: #1a1a1a;
+            border-bottom-color: #1a1a1a;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -143,6 +168,18 @@
             transform: scale(1.05);
         }
 
+        .btn-secondary {
+            padding: 12px 24px;
+            background: transparent;
+            color: #666;
+            border: 2px solid #E5E5E0;
+            border-radius: 10px;
+            font-family: 'Archivo', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
         .posts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -155,6 +192,7 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            position: relative;
         }
 
         .post-card img {
@@ -170,13 +208,14 @@
         .post-card h3 {
             font-size: 16px;
             font-weight: 600;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
 
         .post-card p {
             font-size: 14px;
             color: #666;
             margin-bottom: 12px;
+            line-height: 1.4;
         }
 
         .post-card-footer {
@@ -203,6 +242,29 @@
             border: none;
             cursor: pointer;
             color: #666;
+            font-size: 16px;
+        }
+
+        .badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.draft {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .badge.published {
+            background: #22c55e;
+            color: white;
         }
 
         .modal {
@@ -251,7 +313,14 @@
             margin-bottom: 8px;
         }
 
-        .form-group input {
+        .form-group label .helper-text {
+            font-weight: 400;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group textarea {
             width: 100%;
             padding: 14px;
             border: 2px solid #E5E5E0;
@@ -260,7 +329,13 @@
             font-size: 15px;
         }
 
-        .form-group input:focus {
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: #1a1a1a;
         }
@@ -271,23 +346,43 @@
             margin-top: 24px;
         }
 
-        .btn-secondary {
+        .form-actions button {
             flex: 1;
-            padding: 14px;
-            background: transparent;
-            color: #666;
-            border: 2px solid #E5E5E0;
-            border-radius: 10px;
-            font-family: 'Archivo', sans-serif;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
         }
 
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: #999;
+        }
+
+        .ig-setup-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+        }
+
+        .ig-setup-card h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .ig-setup-card p {
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .ig-setup-card button {
+            background: white;
+            color: #f5576c;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
         }
 
         /* Public View Styles */
@@ -407,6 +502,16 @@
             font-size: 14px;
         }
 
+        .char-count {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .char-count.warning {
+            color: #f59e0b;
+        }
+
         @media (max-width: 768px) {
             .admin-header h1 {
                 font-size: 32px;
@@ -434,9 +539,16 @@
                 <p>Manage your Instagram link-in-bio for @_Taxo_</p>
             </div>
 
+            <!-- Instagram Setup Card (shown if not connected) -->
+            <div class="ig-setup-card" id="ig-setup-card" style="display: none;">
+                <h3>📸 Connect Your Instagram</h3>
+                <p>Automatically fetch your Instagram posts. You'll choose which ones to publish with custom teaser captions.</p>
+                <button onclick="showIGSetupModal()">Set Up Instagram</button>
+            </div>
+
             <div class="stats-grid">
                 <div class="stat-card">
-                    <p>Total Posts</p>
+                    <p>Published Posts</p>
                     <p id="total-posts">0</p>
                 </div>
                 <div class="stat-card">
@@ -449,15 +561,40 @@
                 </div>
             </div>
 
-            <div class="section-header">
-                <h2>Shoppable Posts</h2>
-                <button class="btn-primary" onclick="openAddPostModal()">+ Add Post</button>
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('instagram')">Instagram Posts</button>
+                <button class="tab-btn" onclick="switchTab('published')">Published</button>
+                <button class="tab-btn" onclick="switchTab('drafts')">Drafts</button>
             </div>
 
-            <div class="posts-grid" id="posts-grid">
-                <div class="empty-state">
-                    <p>No posts yet. Add your first shoppable post!</p>
+            <!-- Instagram Posts Tab -->
+            <div class="tab-content" id="tab-instagram">
+                <div class="section-header">
+                    <h2>Instagram Posts</h2>
+                    <button class="btn-secondary" onclick="fetchInstagramPosts()">🔄 Refresh from Instagram</button>
                 </div>
+                <div class="posts-grid" id="instagram-posts-grid">
+                    <div class="empty-state">
+                        <p>Click "Refresh from Instagram" to load your posts</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Published Tab -->
+            <div class="tab-content" id="tab-published" style="display: none;">
+                <div class="section-header">
+                    <h2>Published Posts</h2>
+                </div>
+                <div class="posts-grid" id="published-posts-grid"></div>
+            </div>
+
+            <!-- Drafts Tab -->
+            <div class="tab-content" id="tab-drafts" style="display: none;">
+                <div class="section-header">
+                    <h2>Draft Posts</h2>
+                </div>
+                <div class="posts-grid" id="drafts-posts-grid"></div>
             </div>
         </div>
     </div>
@@ -479,48 +616,94 @@
         </div>
     </div>
 
-    <!-- Add/Edit Post Modal -->
+    <!-- Edit Post Modal -->
     <div class="modal" id="post-modal">
         <div class="modal-content">
-            <h3 id="modal-title">Add New Post</h3>
+            <h3 id="modal-title">Add to Link-in-Bio</h3>
             <form id="post-form">
                 <div class="form-group">
-                    <label>Image URL *</label>
-                    <input type="url" id="image-url" required placeholder="https://example.com/image.jpg">
+                    <label>
+                        Teaser Caption *
+                        <span class="helper-text">Short hook to entice clicks (60-100 chars recommended)</span>
+                    </label>
+                    <textarea id="teaser-caption" required placeholder="Add a compelling teaser that makes people want to click..."></textarea>
+                    <div class="char-count" id="char-count">0 characters</div>
                 </div>
                 <div class="form-group">
-                    <label>Title *</label>
-                    <input type="text" id="title" required placeholder="Product name or title">
+                    <label>Full Article/Product URL *</label>
+                    <input type="url" id="link-url" required placeholder="https://your-website.com/full-article">
                 </div>
                 <div class="form-group">
-                    <label>Description (optional)</label>
-                    <input type="text" id="description" placeholder="Brief description">
+                    <label>Category Tag (optional)</label>
+                    <input type="text" id="category" placeholder="e.g., Breaking News, Featured, New Arrival">
                 </div>
                 <div class="form-group">
-                    <label>Link URL *</label>
-                    <input type="url" id="link-url" required placeholder="https://your-shop.com/product">
-                </div>
-                <div class="form-group">
-                    <label>Category (optional)</label>
-                    <input type="text" id="category" placeholder="e.g., New Arrival, Sale, Featured">
+                    <label>
+                        <input type="checkbox" id="publish-now"> Publish immediately
+                    </label>
+                    <span class="helper-text">Uncheck to save as draft</span>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn-primary" style="flex: 1;">Save Post</button>
+                    <button type="submit" class="btn-primary">Save Post</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Instagram Setup Modal -->
+    <div class="modal" id="ig-setup-modal">
+        <div class="modal-content">
+            <h3>Connect Instagram</h3>
+            <p style="margin-bottom: 20px;">To fetch posts automatically, you'll need an Instagram Access Token.</p>
+            
+            <div style="background: #f0f0f0; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 12px;">Quick Setup:</h4>
+                <ol style="line-height: 1.8; padding-left: 20px;">
+                    <li>Go to <a href="https://developers.facebook.com/apps/" target="_blank">Facebook Developers</a></li>
+                    <li>Create an app → Select "Business" type</li>
+                    <li>Add Instagram Basic Display product</li>
+                    <li>Get your Access Token</li>
+                    <li>Paste it below</li>
+                </ol>
+            </div>
+
+            <div class="form-group">
+                <label>Instagram Access Token</label>
+                <input type="text" id="ig-access-token" placeholder="Paste your access token here">
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="closeIGSetupModal()">Cancel</button>
+                <button type="button" class="btn-primary" onclick="saveIGToken()">Save & Connect</button>
+            </div>
         </div>
     </div>
 
     <script>
         // Data storage
         let posts = JSON.parse(localStorage.getItem('taxo-posts') || '[]');
-        let currentEditId = null;
+        let igToken = localStorage.getItem('taxo-ig-token') || '';
+        let currentEditPost = null;
+        let currentTab = 'instagram';
 
         // Initialize
-        renderPosts();
-        renderLinks();
         updateStats();
+        renderAllTabs();
+        checkIGSetup();
+
+        // Character counter
+        document.getElementById('teaser-caption').addEventListener('input', function() {
+            const count = this.value.length;
+            const counter = document.getElementById('char-count');
+            counter.textContent = `${count} characters`;
+            
+            if (count > 100) {
+                counter.classList.add('warning');
+            } else {
+                counter.classList.remove('warning');
+            }
+        });
 
         // View switching
         function switchView(view) {
@@ -533,35 +716,153 @@
             } else {
                 document.getElementById('public-view').classList.add('active');
                 document.querySelectorAll('.toggle-btn')[1].classList.add('active');
+                renderPublicView();
             }
         }
 
-        // Modal functions
-        function openAddPostModal() {
-            currentEditId = null;
-            document.getElementById('modal-title').textContent = 'Add New Post';
-            document.getElementById('post-form').reset();
+        // Tab switching
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tab}`).style.display = 'block';
+            
+            renderAllTabs();
+        }
+
+        // Instagram Setup
+        function checkIGSetup() {
+            if (!igToken) {
+                document.getElementById('ig-setup-card').style.display = 'block';
+            }
+        }
+
+        function showIGSetupModal() {
+            document.getElementById('ig-setup-modal').classList.add('active');
+        }
+
+        function closeIGSetupModal() {
+            document.getElementById('ig-setup-modal').classList.remove('active');
+        }
+
+        function saveIGToken() {
+            const token = document.getElementById('ig-access-token').value;
+            if (token) {
+                igToken = token;
+                localStorage.setItem('taxo-ig-token', token);
+                document.getElementById('ig-setup-card').style.display = 'none';
+                closeIGSetupModal();
+                alert('Instagram connected! Click "Refresh from Instagram" to load your posts.');
+            }
+        }
+
+        // Fetch Instagram Posts (Simulated - will work with real API)
+        function fetchInstagramPosts() {
+            if (!igToken) {
+                showIGSetupModal();
+                return;
+            }
+
+            // TODO: Replace with real Instagram API call
+            // For now, show demo posts
+            const demoIGPosts = [
+                {
+                    id: 'ig_' + Date.now(),
+                    imageUrl: 'https://picsum.photos/400/400?random=1',
+                    igCaption: 'Amazing sunset today 🌅',
+                    permalink: 'https://instagram.com/p/example1',
+                    timestamp: new Date().toISOString()
+                },
+                {
+                    id: 'ig_' + (Date.now() + 1),
+                    imageUrl: 'https://picsum.photos/400/400?random=2',
+                    igCaption: 'New product launch! Check it out',
+                    permalink: 'https://instagram.com/p/example2',
+                    timestamp: new Date().toISOString()
+                },
+                {
+                    id: 'ig_' + (Date.now() + 2),
+                    imageUrl: 'https://picsum.photos/400/400?random=3',
+                    igCaption: 'Behind the scenes footage',
+                    permalink: 'https://instagram.com/p/example3',
+                    timestamp: new Date().toISOString()
+                }
+            ];
+
+            renderIGPosts(demoIGPosts);
+            alert('📸 Loaded latest Instagram posts! Select which ones to publish.');
+        }
+
+        // Render Instagram Posts
+        function renderIGPosts(igPosts) {
+            const grid = document.getElementById('instagram-posts-grid');
+            
+            if (igPosts.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><p>No Instagram posts found</p></div>';
+                return;
+            }
+
+            grid.innerHTML = igPosts.map(post => {
+                const isAlreadyAdded = posts.find(p => p.igId === post.id);
+                
+                return `
+                    <div class="post-card">
+                        ${isAlreadyAdded ? '<div class="badge published">Added</div>' : ''}
+                        <img src="${post.imageUrl}" alt="Instagram post">
+                        <div class="post-card-content">
+                            <p style="font-size: 13px; color: #999;">Instagram caption:</p>
+                            <p style="font-size: 14px;">${post.igCaption.substring(0, 80)}...</p>
+                            <div class="post-card-footer">
+                                <span></span>
+                                ${isAlreadyAdded ? 
+                                    '<button class="btn-secondary" style="width: 100%; padding: 8px; font-size: 13px;" disabled>Already Added</button>' :
+                                    `<button class="btn-primary" style="width: 100%; padding: 8px; font-size: 13px;" onclick='addIGPost(${JSON.stringify(post)})'>+ Add to Link-in-Bio</button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Add Instagram Post
+        function addIGPost(igPost) {
+            currentEditPost = {
+                igId: igPost.id,
+                imageUrl: igPost.imageUrl,
+                igCaption: igPost.igCaption,
+                igPermalink: igPost.permalink
+            };
+            
+            document.getElementById('modal-title').textContent = 'Add to Link-in-Bio';
+            document.getElementById('teaser-caption').value = '';
+            document.getElementById('link-url').value = '';
+            document.getElementById('category').value = '';
+            document.getElementById('publish-now').checked = false;
+            
             document.getElementById('post-modal').classList.add('active');
         }
 
-        function openEditPostModal(id) {
-            currentEditId = id;
+        // Edit existing post
+        function editPost(id) {
             const post = posts.find(p => p.id === id);
+            currentEditPost = post;
             
             document.getElementById('modal-title').textContent = 'Edit Post';
-            document.getElementById('image-url').value = post.imageUrl;
-            document.getElementById('title').value = post.title;
-            document.getElementById('description').value = post.description || '';
+            document.getElementById('teaser-caption').value = post.teaserCaption || '';
             document.getElementById('link-url').value = post.linkUrl;
             document.getElementById('category').value = post.category || '';
+            document.getElementById('publish-now').checked = post.status === 'published';
             
             document.getElementById('post-modal').classList.add('active');
         }
 
+        // Close modal
         function closeModal() {
             document.getElementById('post-modal').classList.remove('active');
-            document.getElementById('post-form').reset();
-            currentEditId = null;
+            currentEditPost = null;
         }
 
         // Form submission
@@ -569,38 +870,101 @@
             e.preventDefault();
             
             const postData = {
-                imageUrl: document.getElementById('image-url').value,
-                title: document.getElementById('title').value,
-                description: document.getElementById('description').value,
+                teaserCaption: document.getElementById('teaser-caption').value,
                 linkUrl: document.getElementById('link-url').value,
                 category: document.getElementById('category').value,
+                status: document.getElementById('publish-now').checked ? 'published' : 'draft',
                 clicks: 0
             };
 
-            if (currentEditId) {
+            if (currentEditPost.id) {
                 // Update existing post
-                const index = posts.findIndex(p => p.id === currentEditId);
+                const index = posts.findIndex(p => p.id === currentEditPost.id);
                 posts[index] = { ...posts[index], ...postData };
             } else {
-                // Add new post
+                // Add new post from Instagram
                 postData.id = Date.now();
+                postData.igId = currentEditPost.igId;
+                postData.imageUrl = currentEditPost.imageUrl;
+                postData.igCaption = currentEditPost.igCaption;
                 posts.push(postData);
             }
 
             localStorage.setItem('taxo-posts', JSON.stringify(posts));
-            renderPosts();
-            renderLinks();
+            renderAllTabs();
             updateStats();
             closeModal();
+            
+            // Refresh Instagram tab if on it
+            if (currentTab === 'instagram') {
+                fetchInstagramPosts();
+            }
         });
+
+        // Render all tabs
+        function renderAllTabs() {
+            const publishedPosts = posts.filter(p => p.status === 'published');
+            const draftPosts = posts.filter(p => p.status === 'draft');
+            
+            renderPostsGrid('published-posts-grid', publishedPosts);
+            renderPostsGrid('drafts-posts-grid', draftPosts);
+        }
+
+        // Render posts grid
+        function renderPostsGrid(gridId, postsToRender) {
+            const grid = document.getElementById(gridId);
+            
+            if (postsToRender.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><p>No posts here yet</p></div>';
+                return;
+            }
+
+            grid.innerHTML = postsToRender.map(post => `
+                <div class="post-card">
+                    <div class="badge ${post.status}">${post.status}</div>
+                    <img src="${post.imageUrl}" alt="${post.teaserCaption}">
+                    <div class="post-card-content">
+                        <h3>${post.teaserCaption}</h3>
+                        ${post.category ? `<p style="color: #FF6B9D; font-weight: 600; font-size: 12px;">${post.category}</p>` : ''}
+                        <div class="post-card-footer">
+                            <span>${post.clicks || 0} clicks</span>
+                            <div class="post-actions">
+                                <button class="icon-btn" onclick="editPost(${post.id})">✏️</button>
+                                <button class="icon-btn" onclick="deletePost(${post.id})">🗑️</button>
+                                ${post.status === 'draft' ? 
+                                    `<button class="icon-btn" onclick="publishPost(${post.id})">📤</button>` : 
+                                    `<button class="icon-btn" onclick="unpublishPost(${post.id})">📥</button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Publish/Unpublish posts
+        function publishPost(id) {
+            const post = posts.find(p => p.id === id);
+            post.status = 'published';
+            localStorage.setItem('taxo-posts', JSON.stringify(posts));
+            renderAllTabs();
+            updateStats();
+        }
+
+        function unpublishPost(id) {
+            const post = posts.find(p => p.id === id);
+            post.status = 'draft';
+            localStorage.setItem('taxo-posts', JSON.stringify(posts));
+            renderAllTabs();
+            updateStats();
+        }
 
         // Delete post
         function deletePost(id) {
-            if (confirm('Are you sure you want to delete this post?')) {
+            if (confirm('Delete this post?')) {
                 posts = posts.filter(p => p.id !== id);
                 localStorage.setItem('taxo-posts', JSON.stringify(posts));
-                renderPosts();
-                renderLinks();
+                renderAllTabs();
                 updateStats();
             }
         }
@@ -615,71 +979,49 @@
             }
         }
 
-        // Render functions
-        function renderPosts() {
-            const grid = document.getElementById('posts-grid');
-            
-            if (posts.length === 0) {
-                grid.innerHTML = '<div class="empty-state"><p>No posts yet. Add your first shoppable post!</p></div>';
-                return;
-            }
-
-            grid.innerHTML = posts.map(post => `
-                <div class="post-card">
-                    <img src="${post.imageUrl}" alt="${post.title}">
-                    <div class="post-card-content">
-                        <h3>${post.title}</h3>
-                        ${post.description ? `<p>${post.description}</p>` : ''}
-                        <div class="post-card-footer">
-                            <span>${post.clicks || 0} clicks</span>
-                            <div class="post-actions">
-                                <button class="icon-btn" onclick="openEditPostModal(${post.id})">✏️</button>
-                                <button class="icon-btn" onclick="deletePost(${post.id})">🗑️</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderLinks() {
+        // Render public view
+        function renderPublicView() {
             const grid = document.getElementById('links-grid');
+            const publishedPosts = posts.filter(p => p.status === 'published');
             
-            if (posts.length === 0) {
+            if (publishedPosts.length === 0) {
                 grid.innerHTML = '';
                 return;
             }
 
-            grid.innerHTML = posts.map(post => `
+            grid.innerHTML = publishedPosts.map(post => `
                 <a href="${post.linkUrl}" target="_blank" class="link-item" onclick="trackClick(${post.id})">
                     <div class="link-card">
                         <div style="position: relative;">
-                            <img src="${post.imageUrl}" alt="${post.title}">
+                            <img src="${post.imageUrl}" alt="${post.teaserCaption}">
                             ${post.category ? `<div class="category-badge">${post.category}</div>` : ''}
                         </div>
                         <div class="link-card-content">
-                            <h3>${post.title}</h3>
-                            ${post.description ? `<p>${post.description}</p>` : ''}
+                            <h3>${post.teaserCaption}</h3>
                         </div>
                     </div>
                 </a>
             `).join('');
         }
 
+        // Update stats
         function updateStats() {
-            const totalClicks = posts.reduce((sum, post) => sum + (post.clicks || 0), 0);
-            const avgCtr = posts.length ? Math.round(totalClicks / posts.length) : 0;
+            const publishedPosts = posts.filter(p => p.status === 'published');
+            const totalClicks = publishedPosts.reduce((sum, post) => sum + (post.clicks || 0), 0);
+            const avgCtr = publishedPosts.length ? Math.round(totalClicks / publishedPosts.length) : 0;
             
-            document.getElementById('total-posts').textContent = posts.length;
+            document.getElementById('total-posts').textContent = publishedPosts.length;
             document.getElementById('total-clicks').textContent = totalClicks;
             document.getElementById('avg-ctr').textContent = avgCtr;
         }
 
         // Close modal when clicking outside
         document.getElementById('post-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
+            if (e.target === this) closeModal();
+        });
+        
+        document.getElementById('ig-setup-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeIGSetupModal();
         });
     </script>
 </body>
