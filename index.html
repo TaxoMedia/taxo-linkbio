@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@_Taxo_ | Link in Bio</title>
     <style>
-        @import url('https://imgur.com/Ck13RB9');
+        @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Fraunces:wght@600;700&display=swap');
         
         * {
             margin: 0;
@@ -414,6 +414,13 @@
             color: white;
             font-weight: 700;
             box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .public-header h1 {
@@ -566,6 +573,7 @@
                 <button class="tab-btn active" onclick="switchTab('instagram')">Instagram Posts</button>
                 <button class="tab-btn" onclick="switchTab('published')">Published</button>
                 <button class="tab-btn" onclick="switchTab('drafts')">Drafts</button>
+                <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
             </div>
 
             <!-- Instagram Posts Tab -->
@@ -596,6 +604,46 @@
                 </div>
                 <div class="posts-grid" id="drafts-posts-grid"></div>
             </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="tab-settings" style="display: none;">
+                <div class="section-header">
+                    <h2>Page Settings</h2>
+                </div>
+                <div style="max-width: 600px;">
+                    <div style="background: white; padding: 32px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                        <h3 style="font-family: 'Fraunces', serif; font-size: 24px; margin-bottom: 24px;">Customize Your Page</h3>
+                        
+                        <div class="form-group">
+                            <label>Profile Picture URL</label>
+                            <input type="url" id="settings-profile-pic" placeholder="https://i.imgur.com/yourimage.jpg">
+                            <p style="font-size: 13px; color: #999; margin-top: 8px;">Upload to Imgur, then paste the direct image link here</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Bio Title</label>
+                            <input type="text" id="settings-bio-title" placeholder="@_Taxo_">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Bio Description</label>
+                            <input type="text" id="settings-bio-description" placeholder="Explore our curated collection">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Brand Color</label>
+                            <input type="color" id="settings-brand-color" value="#FF6B9D">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Background Color</label>
+                            <input type="color" id="settings-bg-color" value="#0A0A0A">
+                        </div>
+
+                        <button class="btn-primary" style="width: 100%;" onclick="saveSettings()">Save Settings</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -603,9 +651,9 @@
     <div class="view public-view" id="public-view">
         <div class="public-container">
             <div class="public-header">
-                <div class="profile-avatar">T</div>
-                <h1>@_Taxo_</h1>
-                <p>Explore our curated collection</p>
+                <div class="profile-avatar" id="public-avatar">T</div>
+                <h1 id="public-title">@_Taxo_</h1>
+                <p id="public-description">Explore our curated collection</p>
             </div>
 
             <div class="links-grid" id="links-grid"></div>
@@ -684,6 +732,7 @@
         // Data storage
         let posts = JSON.parse(localStorage.getItem('taxo-posts') || '[]');
         let igToken = localStorage.getItem('taxo-ig-token') || '';
+        let settings = JSON.parse(localStorage.getItem('taxo-settings') || '{"bioTitle":"@_Taxo_","bioDescription":"Explore our curated collection","brandColor":"#FF6B9D","backgroundColor":"#0A0A0A","profilePicUrl":""}');
         let currentEditPost = null;
         let currentTab = 'instagram';
 
@@ -691,6 +740,7 @@
         updateStats();
         renderAllTabs();
         checkIGSetup();
+        loadSettings();
 
         // Character counter
         document.getElementById('teaser-caption').addEventListener('input', function() {
@@ -994,7 +1044,7 @@
                     <div class="link-card">
                         <div style="position: relative;">
                             <img src="${post.imageUrl}" alt="${post.teaserCaption}">
-                            ${post.category ? `<div class="category-badge">${post.category}</div>` : ''}
+                            ${post.category ? `<div class="category-badge" style="background: ${settings.brandColor}">${post.category}</div>` : ''}
                         </div>
                         <div class="link-card-content">
                             <h3>${post.teaserCaption}</h3>
@@ -1013,6 +1063,48 @@
             document.getElementById('total-posts').textContent = publishedPosts.length;
             document.getElementById('total-clicks').textContent = totalClicks;
             document.getElementById('avg-ctr').textContent = avgCtr;
+        }
+
+        // Settings functions
+        function loadSettings() {
+            document.getElementById('settings-profile-pic').value = settings.profilePicUrl || '';
+            document.getElementById('settings-bio-title').value = settings.bioTitle || '@_Taxo_';
+            document.getElementById('settings-bio-description').value = settings.bioDescription || 'Explore our curated collection';
+            document.getElementById('settings-brand-color').value = settings.brandColor || '#FF6B9D';
+            document.getElementById('settings-bg-color').value = settings.backgroundColor || '#0A0A0A';
+            
+            applySettings();
+        }
+
+        function saveSettings() {
+            settings = {
+                profilePicUrl: document.getElementById('settings-profile-pic').value,
+                bioTitle: document.getElementById('settings-bio-title').value,
+                bioDescription: document.getElementById('settings-bio-description').value,
+                brandColor: document.getElementById('settings-brand-color').value,
+                backgroundColor: document.getElementById('settings-bg-color').value
+            };
+            
+            localStorage.setItem('taxo-settings', JSON.stringify(settings));
+            applySettings();
+            alert('✅ Settings saved! Check the Preview to see your changes.');
+        }
+
+        function applySettings() {
+            // Apply to public view
+            const avatar = document.getElementById('public-avatar');
+            if (settings.profilePicUrl) {
+                avatar.innerHTML = `<img src="${settings.profilePicUrl}" alt="Profile">`;
+            } else {
+                avatar.innerHTML = 'T';
+            }
+            
+            document.getElementById('public-title').textContent = settings.bioTitle;
+            document.getElementById('public-description').textContent = settings.bioDescription;
+            document.getElementById('public-view').style.background = settings.backgroundColor;
+            
+            // Update category badges color
+            document.documentElement.style.setProperty('--brand-color', settings.brandColor);
         }
 
         // Close modal when clicking outside
