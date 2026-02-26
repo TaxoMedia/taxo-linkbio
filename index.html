@@ -741,6 +741,11 @@
         renderAllTabs();
         checkIGSetup();
         loadSettings();
+        
+        // Debug: Log what's in storage
+        console.log('Posts in storage:', posts.length);
+        console.log('Settings:', settings);
+        console.log('IG Token exists:', !!igToken);
 
         // Character counter
         document.getElementById('teaser-caption').addEventListener('input', function() {
@@ -799,51 +804,96 @@
         }
 
         function saveIGToken() {
-            const token = document.getElementById('ig-access-token').value;
-            if (token) {
-                igToken = token;
-                localStorage.setItem('taxo-ig-token', token);
-                document.getElementById('ig-setup-card').style.display = 'none';
-                closeIGSetupModal();
-                alert('Instagram connected! Click "Refresh from Instagram" to load your posts.');
+            const token = document.getElementById('ig-access-token').value.trim();
+            if (!token) {
+                alert('❌ Please paste your access token first!');
+                return;
             }
+            
+            if (token.length < 50) {
+                alert('❌ That doesn\'t look like a valid access token. It should be much longer.');
+                return;
+            }
+            
+            igToken = token;
+            localStorage.setItem('taxo-ig-token', token);
+            document.getElementById('ig-setup-card').style.display = 'none';
+            closeIGSetupModal();
+            alert('✅ Instagram connected! Now click "🔄 Refresh from Instagram" to load your posts.');
         }
 
-        // Fetch Instagram Posts (Simulated - will work with real API)
-        function fetchInstagramPosts() {
+        // Fetch Instagram Posts (Real API)
+        async function fetchInstagramPosts() {
             if (!igToken) {
                 showIGSetupModal();
                 return;
             }
 
-            // TODO: Replace with real Instagram API call
-            // For now, show demo posts
-            const demoIGPosts = [
-                {
-                    id: 'ig_' + Date.now(),
-                    imageUrl: 'https://picsum.photos/400/400?random=1',
-                    igCaption: 'Amazing sunset today 🌅',
-                    permalink: 'https://instagram.com/p/example1',
-                    timestamp: new Date().toISOString()
-                },
-                {
-                    id: 'ig_' + (Date.now() + 1),
-                    imageUrl: 'https://picsum.photos/400/400?random=2',
-                    igCaption: 'New product launch! Check it out',
-                    permalink: 'https://instagram.com/p/example2',
-                    timestamp: new Date().toISOString()
-                },
-                {
-                    id: 'ig_' + (Date.now() + 2),
-                    imageUrl: 'https://picsum.photos/400/400?random=3',
-                    igCaption: 'Behind the scenes footage',
-                    permalink: 'https://instagram.com/p/example3',
-                    timestamp: new Date().toISOString()
-                }
-            ];
+            const grid = document.getElementById('instagram-posts-grid');
+            grid.innerHTML = '<div class="empty-state"><p>Loading posts from Instagram...</p></div>';
 
-            renderIGPosts(demoIGPosts);
-            alert('📸 Loaded latest Instagram posts! Select which ones to publish.');
+            try {
+                // First, get the Instagram Business Account ID
+                const accountResponse = await fetch(
+                    `https://graph.facebook.com/v18.0/me/accounts?access_token=${igToken}`
+                );
+                const accountData = await accountResponse.json();
+                
+                if (!accountData.data || accountData.data.length === 0) {
+                    grid.innerHTML = '<div class="empty-state"><p>❌ No Facebook Page found. Make sure your Instagram is connected to a Facebook Page.</p></div>';
+                    return;
+                }
+
+                const pageId = accountData.data[0].id;
+                const pageAccessToken = accountData.data[0].access_token;
+
+                // Get Instagram Business Account
+                const igAccountResponse = await fetch(
+                    `https://graph.facebook.com/v18.0/${pageId}?fields=instagram_business_account&access_token=${pageAccessToken}`
+                );
+                const igAccountData = await igAccountResponse.json();
+
+                if (!igAccountData.instagram_business_account) {
+                    grid.innerHTML = '<div class="empty-state"><p>❌ No Instagram Business Account connected to this Facebook Page.</p></div>';
+                    return;
+                }
+
+                const igBusinessAccountId = igAccountData.instagram_business_account.id;
+
+                // Get Instagram Media (Posts)
+                const mediaResponse = await fetch(
+                    `https://graph.facebook.com/v18.0/${igBusinessAccountId}/media?fields=id,caption,media_type,media_url,permalink,thumbnail_url,timestamp&limit=20&access_token=${pageAccessToken}`
+                );
+                const mediaData = await mediaResponse.json();
+
+                if (!mediaData.data || mediaData.data.length === 0) {
+                    grid.innerHTML = '<div class="empty-state"><p>No Instagram posts found.</p></div>';
+                    return;
+                }
+
+                // Filter for images and videos only
+                const validPosts = mediaData.data.filter(post => 
+                    post.media_type === 'IMAGE' || post.media_type === 'VIDEO' || post.media_type === 'CAROUSEL_ALBUM'
+                );
+
+                const igPosts = validPosts.map(post => ({
+                    id: 'ig_' + post.id,
+                    imageUrl: post.media_url || post.thumbnail_url,
+                    igCaption: post.caption || 'No caption',
+                    permalink: post.permalink,
+                    timestamp: post.timestamp
+                }));
+
+                // Store the page access token for future use
+                localStorage.setItem('taxo-page-token', pageAccessToken);
+
+                renderIGPosts(igPosts);
+                alert(`✅ Loaded ${igPosts.length} posts from Instagram!`);
+
+            } catch (error) {
+                console.error('Error fetching Instagram posts:', error);
+                grid.innerHTML = `<div class="empty-state"><p>❌ Error loading posts: ${error.message}<br><br>Make sure your access token is valid and you have the right permissions.</p></div>`;
+            }
         }
 
         // Render Instagram Posts
@@ -1123,3 +1173,5 @@
             if (e.target === this) closeIGSetupModal();
         });
     </script>
+</body>
+</html>
