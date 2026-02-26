@@ -729,6 +729,16 @@
     </div>
 
     <script>
+        // Sanitize user-controlled strings before inserting into innerHTML
+        function escapeHTML(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         // Data storage
         let posts = JSON.parse(localStorage.getItem('taxo-posts') || '[]');
         let igToken = localStorage.getItem('taxo-ig-token') || '';
@@ -892,7 +902,7 @@
 
             } catch (error) {
                 console.error('Error fetching Instagram posts:', error);
-                grid.innerHTML = `<div class="empty-state"><p>❌ Error loading posts: ${error.message}<br><br>Make sure your access token is valid and you have the right permissions.</p></div>`;
+                grid.innerHTML = `<div class="empty-state"><p>❌ Error loading posts: ${escapeHTML(error.message)}<br><br>Make sure your access token is valid and you have the right permissions.</p></div>`;
             }
         }
 
@@ -907,19 +917,19 @@
 
             grid.innerHTML = igPosts.map(post => {
                 const isAlreadyAdded = posts.find(p => p.igId === post.id);
-                
+
                 return `
                     <div class="post-card">
                         ${isAlreadyAdded ? '<div class="badge published">Added</div>' : ''}
-                        <img src="${post.imageUrl}" alt="Instagram post">
+                        <img src="${escapeHTML(post.imageUrl)}" alt="Instagram post">
                         <div class="post-card-content">
                             <p style="font-size: 13px; color: #999;">Instagram caption:</p>
-                            <p style="font-size: 14px;">${post.igCaption.substring(0, 80)}...</p>
+                            <p style="font-size: 14px;">${escapeHTML(post.igCaption.substring(0, 80))}...</p>
                             <div class="post-card-footer">
                                 <span></span>
-                                ${isAlreadyAdded ? 
+                                ${isAlreadyAdded ?
                                     '<button class="btn-secondary" style="width: 100%; padding: 8px; font-size: 13px;" disabled>Already Added</button>' :
-                                    `<button class="btn-primary" style="width: 100%; padding: 8px; font-size: 13px;" onclick='addIGPost(${JSON.stringify(post)})'>+ Add to Link-in-Bio</button>`
+                                    `<button class="btn-primary" style="width: 100%; padding: 8px; font-size: 13px;" onclick='addIGPost(${escapeHTML(JSON.stringify(post))})'>+ Add to Link-in-Bio</button>`
                                 }
                             </div>
                         </div>
@@ -1022,18 +1032,18 @@
 
             grid.innerHTML = postsToRender.map(post => `
                 <div class="post-card">
-                    <div class="badge ${post.status}">${post.status}</div>
-                    <img src="${post.imageUrl}" alt="${post.teaserCaption}">
+                    <div class="badge ${escapeHTML(post.status)}">${escapeHTML(post.status)}</div>
+                    <img src="${escapeHTML(post.imageUrl)}" alt="${escapeHTML(post.teaserCaption)}">
                     <div class="post-card-content">
-                        <h3>${post.teaserCaption}</h3>
-                        ${post.category ? `<p style="color: #FF6B9D; font-weight: 600; font-size: 12px;">${post.category}</p>` : ''}
+                        <h3>${escapeHTML(post.teaserCaption)}</h3>
+                        ${post.category ? `<p style="color: #FF6B9D; font-weight: 600; font-size: 12px;">${escapeHTML(post.category)}</p>` : ''}
                         <div class="post-card-footer">
                             <span>${post.clicks || 0} clicks</span>
                             <div class="post-actions">
                                 <button class="icon-btn" onclick="editPost(${post.id})">✏️</button>
                                 <button class="icon-btn" onclick="deletePost(${post.id})">🗑️</button>
-                                ${post.status === 'draft' ? 
-                                    `<button class="icon-btn" onclick="publishPost(${post.id})">📤</button>` : 
+                                ${post.status === 'draft' ?
+                                    `<button class="icon-btn" onclick="publishPost(${post.id})">📤</button>` :
                                     `<button class="icon-btn" onclick="unpublishPost(${post.id})">📥</button>`
                                 }
                             </div>
@@ -1091,14 +1101,14 @@
             }
 
             grid.innerHTML = publishedPosts.map(post => `
-                <a href="${post.linkUrl}" target="_blank" class="link-item" onclick="trackClick(${post.id})">
+                <a href="${escapeHTML(post.linkUrl)}" target="_blank" rel="noopener noreferrer" class="link-item" onclick="trackClick(${post.id})">
                     <div class="link-card">
                         <div style="position: relative;">
-                            <img src="${post.imageUrl}" alt="${post.teaserCaption}">
-                            ${post.category ? `<div class="category-badge" style="background: ${settings.brandColor}">${post.category}</div>` : ''}
+                            <img src="${escapeHTML(post.imageUrl)}" alt="${escapeHTML(post.teaserCaption)}">
+                            ${post.category ? `<div class="category-badge" style="background: ${escapeHTML(settings.brandColor)}">${escapeHTML(post.category)}</div>` : ''}
                         </div>
                         <div class="link-card-content">
-                            <h3>${post.teaserCaption}</h3>
+                            <h3>${escapeHTML(post.teaserCaption)}</h3>
                         </div>
                     </div>
                 </a>
@@ -1147,7 +1157,7 @@
             const publicView = document.getElementById('public-view');
             
             if (settings.profilePicUrl) {
-                avatar.innerHTML = `<img src="${settings.profilePicUrl}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">`;
+                avatar.innerHTML = `<img src="${escapeHTML(settings.profilePicUrl)}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">`;
                 avatar.style.background = 'transparent';
             } else {
                 avatar.innerHTML = 'T';
